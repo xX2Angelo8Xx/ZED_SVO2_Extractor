@@ -4,12 +4,14 @@
 set(COMMON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/metadata.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/file_utils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/svo_handler.cpp
 )
 
 # Header files
 set(COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/metadata.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/file_utils.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/svo_handler.hpp
 )
 
 # Create static library
@@ -21,6 +23,7 @@ target_include_directories(zed_common
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${ZED_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
+        ${CUDAToolkit_INCLUDE_DIRS}
 )
 
 # Link libraries
@@ -37,6 +40,10 @@ if(MSVC)
         /WX-                # Warnings not as errors (for rapid prototyping)
         /MP                 # Multi-processor compilation
         /permissive-        # Standards conformance
+        /wd4201             # Suppress: nonstandard extension (ZED SDK)
+        /wd4251             # Suppress: DLL interface warnings (ZED SDK)
+        /wd4305             # Suppress: truncation warnings (ZED SDK)
+        /wd4100             # Suppress: unreferenced parameter (ZED SDK)
     )
     
     # Add ZED SDK and OpenCV DLL directories to PATH for debugging
