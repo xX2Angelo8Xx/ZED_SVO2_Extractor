@@ -1,0 +1,306 @@
+# ============================================================================
+# .gitignore - ZED SVO2 Frame Extraction Tool
+# ============================================================================
+# Author: Angelo Amon (xX2Angelo8Xx)
+# Date: November 7, 2025
+# Description: Git ignore patterns for C++ project with CMake
+# ============================================================================
+
+# ============================================================================
+# Build Directories
+# ============================================================================
+build/
+Build/
+BUILD/
+out/
+cmake-build-*/
+.cmake/
+
+# ============================================================================
+# CMake Generated Files
+# ============================================================================
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+*.cmake
+!CMakeLists.txt
+
+# ============================================================================
+# C++ Compiled Object Files
+# ============================================================================
+*.o
+*.obj
+*.lo
+*.slo
+*.ko
+*.elf
+
+# ============================================================================
+# C++ Compiled Libraries
+# ============================================================================
+*.lib
+*.a
+*.la
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# ============================================================================
+# C++ Executables
+# ============================================================================
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+ZED_SVO2_Extractor
+ZED_SVO2_Extractor.exe
+
+# ============================================================================
+# Precompiled Headers
+# ============================================================================
+*.gch
+*.pch
+
+# ============================================================================
+# Debug Files
+# ============================================================================
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.ilk
+*.log
+
+# ============================================================================
+# Visual Studio Files
+# ============================================================================
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+*.VC.db-shm
+*.VC.db-wal
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Visual Studio cache/options
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# ============================================================================
+# IDE Files
+# ============================================================================
+# CLion
+.idea/
+cmake-build-*/
+
+# Qt Creator
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+CMakeLists.txt.user*
+
+# Eclipse
+.cproject
+.project
+.settings/
+
+# Code::Blocks
+*.cbp
+*.layout
+*.depend
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# ============================================================================
+# OS Generated Files
+# ============================================================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================================================
+# Package Managers
+# ============================================================================
+# Conan
+conan.lock
+conanbuildinfo.*
+conaninfo.txt
+graph_info.json
+
+# vcpkg
+vcpkg_installed/
+
+# Hunter
+.hunter/
+
+# ============================================================================
+# Testing and Coverage
+# ============================================================================
+Testing/
+*.gcno
+*.gcda
+*.gcov
+coverage/
+*.coverage
+
+# Google Test
+googletest/
+gtest/
+gmock/
+
+# ============================================================================
+# Documentation
+# ============================================================================
+# Doxygen
+html/
+latex/
+docs/html/
+docs/latex/
+Doxyfile.bak
+
+# Sphinx
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# ============================================================================
+# Temporary Files
+# ============================================================================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# ============================================================================
+# Backup Files
+# ============================================================================
+*.bak
+*.backup
+*.old
+*~
+
+# ============================================================================
+# Logs
+# ============================================================================
+*.log
+logs/
+*.log.*
+
+# ============================================================================
+# Project Specific
+# ============================================================================
+# ZED SDK temporary files
+*.svo.idx
+*.svo.tmp
+
+# Output directories (uncomment if you don't want to track extracted frames)
+# output/
+# *_Output/
+
+# Configuration files with local paths (if created)
+config.local.txt
+settings.local.json
+
+# Performance profiling
+*.prof
+*.perf
+
+# Memory leak detection
+valgrind-*.log
+*.memcheck
+
+# ============================================================================
+# Dependencies (if vendored)
+# ============================================================================
+# Only ignore if you're vendoring dependencies
+# third_party/
+# external/
+# vendor/
+
+# ============================================================================
+# Archive Files
+# ============================================================================
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# ============================================================================
+# Keep Important Files
+# ============================================================================
+# Force include important files even if patterns match
+!.gitignore
+!.gitattributes
+!README.md
+!LICENSE
+!CMakeLists.txt
