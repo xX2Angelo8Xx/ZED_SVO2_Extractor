@@ -72,6 +72,12 @@ endif()
 add_subdirectory(common)
 
 # =============================================================================
+# External Libraries
+# =============================================================================
+# Dear ImGui for GUI
+add_subdirectory(external/imgui)
+
+# =============================================================================
 # Applications (Will be added as we develop them)
 # =============================================================================
 # Phase 2-3: Frame Extractor
@@ -79,6 +85,9 @@ add_subdirectory(apps/frame_extractor)
 
 # Phase 4-5: Video Extractor  
 add_subdirectory(apps/video_extractor)
+
+# Phase 2B: GUI Application
+add_subdirectory(apps/gui_extractor)
 
 # Phase 6-9: Depth Analyzer
 # add_subdirectory(apps/depth_analyzer)
