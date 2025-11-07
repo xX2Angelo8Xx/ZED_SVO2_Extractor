@@ -1,21 +1,79 @@
-# ZED SVO2 Frame Extraction Tool
+# ZED SVO2 Extraction Tools Suite
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/xX2Angelo8Xx/ZED_SVO2_Extractor)
+[![Version](https://img.shields.io/badge/version-0.1.0--alpha-blue.svg)](https://github.com/xX2Angelo8Xx/ZED_SVO2_Extractor)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![C++](https://img.shields.io/badge/C++-17-orange.svg)](https://en.cppreference.com/w/cpp/17)
+[![Status](https://img.shields.io/badge/status-in--development-yellow.svg)]()
 
-A professional C++ application for extracting frames from Stereolabs ZED camera SVO2 (Stereo Video Output) files. This tool enables batch processing of multiple SVO2 files with support for left/right camera images and depth map extraction.
+**Three professional C++ applications for processing Stereolabs ZED 2i camera SVO2 files:**
 
-## 🎯 Features
+1. **🎬 Video Extractor** - Export high-quality MP4 videos (H.264)
+2. **📸 Frame Extractor** - Extract frames for YOLO model training
+3. **🌡️ Depth Analyzer** - Neural depth analysis with heatmap visualization
 
-- ✅ **Batch Processing**: Process multiple SVO2 files automatically
-- ✅ **Multi-View Extraction**: Extract left camera, right camera, and depth images
-- ✅ **Flexible Configuration**: Customizable output format (PNG, JPEG, etc.)
-- ✅ **Frame Skipping**: Extract every Nth frame to reduce output size
-- ✅ **Progress Tracking**: Real-time progress display during extraction
-- ✅ **Organized Output**: Automatic directory structure creation
-- ✅ **Error Handling**: Robust error handling and reporting
-- ✅ **Performance Metrics**: Detailed timing and statistics
+**Current Phase:** Phase 0 - Foundation & Documentation  
+**Project Start:** November 7, 2025
+
+---
+
+## 📚 Documentation
+
+**Essential Reading:**
+- **[📋 Project Roadmap](docs/ROADMAP.md)** - Development phases, milestones, and timeline
+- **[🎓 C++ Learning Guide](docs/CPP_LEARNING_GUIDE.md)** - Learn C++ through this project
+- **[⚙️ Dependency Setup](docs/DEPENDENCY_SETUP.md)** - Installation guide for all dependencies
+- **[🔄 Git Workflow](docs/GIT_WORKFLOW.md)** - Version control best practices
+- **[📝 Code Style Guide](docs/CODE_STYLE_GUIDE.md)** - Coding standards and conventions
+- **[🔧 Implementation Details](docs/IMPLEMENTATION.md)** - Technical specifications
+
+---
+
+## 🎯 Project Goals
+
+### Application 1: Video Extractor
+Extract MP4 videos from SVO2 files with maximum quality preservation:
+- Left, Right, or Both cameras (side-by-side or separate)
+- Original FPS and resolution maintained
+- H.264 encoding
+- Metadata export with flight information
+
+### Application 2: Frame Extractor
+Extract frames for machine learning (YOLO training):
+- 1 frame per second extraction
+- PNG format (lossless)
+- Continuous numbering across sessions
+- Left or Right camera selection
+
+### Application 3: Depth Analyzer
+Neural depth analysis with object detection:
+- AI-powered depth sensing (NEURAL/NEURAL_PLUS modes)
+- 10-50m range heatmap (red=close, blue=far)
+- Object detection with distance measurement
+- Video output with camera overlay
+- Configurable transparency
+
+---
+
+## 🚀 Current Status
+
+### ✅ Completed (Phase 0)
+- [x] Project structure and organization
+- [x] Metadata system with JSON export
+- [x] Flight folder parser (date/time extraction)
+- [x] Comprehensive documentation framework
+- [x] Development workflow defined
+
+### 🎯 Next Up (Phase 1)
+- [ ] Core infrastructure (file utilities, SVO handlers)
+- [ ] Error handling and logging system
+- [ ] Progress tracking framework
+- [ ] CMake build system configuration
+
+**See [ROADMAP.md](docs/ROADMAP.md) for complete development plan.**
+
+---
+
+## 🎯 Features (Planned)
 
 ## 📋 Prerequisites
 
