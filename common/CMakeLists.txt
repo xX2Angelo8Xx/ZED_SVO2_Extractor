@@ -3,11 +3,13 @@
 # Source files
 set(COMMON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/metadata.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/file_utils.cpp
 )
 
 # Header files
 set(COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/metadata.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/file_utils.hpp
 )
 
 # Create static library
