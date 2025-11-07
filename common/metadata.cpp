@@ -332,4 +332,58 @@ std::string getCurrentDateTime() {
     return oss.str();
 }
 
+// =============================================================================
+// metadata_utils Implementation
+// =============================================================================
+
+namespace metadata_utils {
+
+bool saveFrameMetadataList(
+    const std::vector<FrameMetadata>& frameList,
+    const std::string& outputPath
+) {
+    if (frameList.empty()) {
+        return false;
+    }
+    
+    try {
+        std::ofstream file(outputPath);
+        if (!file.is_open()) {
+            return false;
+        }
+        
+        // Use the first frame's metadata as the base
+        const FrameMetadata& meta = frameList[0];
+        
+        // Build JSON manually for simplicity
+        file << "{\n";
+        file << "  \"extraction_type\": \"frames\",\n";
+        file << "  \"extraction_date\": \"" << getCurrentDateTime() << "\",\n";
+        file << "  \"total_frames\": " << frameList.size() << ",\n";
+        file << "  \"camera_mode\": \"" << meta.cameraMode << "\",\n";
+        file << "  \"width\": " << meta.width << ",\n";
+        file << "  \"height\": " << meta.height << ",\n";
+        file << "  \"source_fps\": " << meta.sourceFps << ",\n";
+        file << "  \"output_directory\": \"" << meta.outputDirectory << "\"";
+        
+        // Add flight info if available
+        if (!meta.flightInfo.folderName.empty()) {
+            file << ",\n  \"flight_info\": {\n";
+            file << "    \"folder_name\": \"" << meta.flightInfo.folderName << "\",\n";
+            file << "    \"date\": \"" << meta.flightInfo.date << "\",\n";
+            file << "    \"time\": \"" << meta.flightInfo.time << "\"\n";
+            file << "  }";
+        }
+        
+        file << "\n}\n";
+        file.close();
+        
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+} // namespace metadata_utils
+
 } // namespace zed_tools

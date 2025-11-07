@@ -179,4 +179,28 @@ private:
  */
 std::string getCurrentDateTime();
 
+/**
+ * @brief Utility namespace for metadata operations
+ */
+namespace metadata_utils {
+    /**
+     * @brief Get current date/time as string
+     * @return ISO 8601 formatted date/time string
+     */
+    inline std::string getCurrentDateTime() {
+        return zed_tools::getCurrentDateTime();
+    }
+    
+    /**
+     * @brief Save list of frame metadata to JSON file
+     * @param frameList Vector of FrameMetadata structures
+     * @param outputPath Path to output JSON file
+     * @return true if successful, false otherwise
+     */
+    bool saveFrameMetadataList(
+        const std::vector<FrameMetadata>& frameList,
+        const std::string& outputPath
+    );
+}
+
 } // namespace zed_tools

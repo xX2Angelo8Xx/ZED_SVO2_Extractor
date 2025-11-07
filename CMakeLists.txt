@@ -40,21 +40,18 @@ if(WIN32)
     set(ZED_LIBRARIES "${ZED_LIBRARY_DIR}/sl_zed64.lib")
     
     # Bundled OpenCV (Version 3.1.0)
-    set(OpenCV_DIR "${ZED_SDK_ROOT_DIR}/opencv")
+    set(OpenCV_DIR "${ZED_SDK_ROOT_DIR}/dependencies/opencv_3.1.0")
     set(OpenCV_INCLUDE_DIRS "${OpenCV_DIR}/include")
-    set(OpenCV_LIBRARY_DIR "${OpenCV_DIR}/x64/vc14/lib")
+    set(OpenCV_LIBRARY_DIR "${OpenCV_DIR}/x64")
     
-    # OpenCV libraries we need
+    # OpenCV libraries - using opencv_world (all-in-one library)
     set(OpenCV_LIBS
-        "${OpenCV_LIBRARY_DIR}/opencv_core310.lib"
-        "${OpenCV_LIBRARY_DIR}/opencv_highgui310.lib"
-        "${OpenCV_LIBRARY_DIR}/opencv_imgproc310.lib"
-        "${OpenCV_LIBRARY_DIR}/opencv_imgcodecs310.lib"
+        "${OpenCV_LIBRARY_DIR}/opencv_world310.lib"
     )
     
     # Add DLL directories to PATH for runtime
     set(ZED_DLL_DIR "${ZED_SDK_ROOT_DIR}/bin")
-    set(OpenCV_DLL_DIR "${OpenCV_DIR}/x64/vc14/bin")
+    set(OpenCV_DLL_DIR "${OpenCV_LIBRARY_DIR}")
 endif()
 
 # =============================================================================
@@ -78,7 +75,7 @@ add_subdirectory(common)
 # Applications (Will be added as we develop them)
 # =============================================================================
 # Phase 2-3: Frame Extractor
-# add_subdirectory(apps/frame_extractor)
+add_subdirectory(apps/frame_extractor)
 
 # Phase 4-5: Video Extractor  
 # add_subdirectory(apps/video_extractor)
