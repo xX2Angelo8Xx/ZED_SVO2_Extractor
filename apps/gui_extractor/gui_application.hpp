@@ -10,6 +10,10 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include "../../common/extraction_engine.hpp"
 
 // Forward declarations
 struct GLFWwindow;
@@ -68,9 +72,18 @@ private:
     int videoQuality_;
     
     // Progress tracking
-    bool isProcessing_;
-    float progressValue_;
+    std::atomic<bool> isProcessing_;
+    std::atomic<float> progressValue_;
     std::string progressMessage_;
+    std::mutex progressMutex_;
+    
+    // Extraction engine and threading
+    std::unique_ptr<zed_extractor::ExtractionEngine> engine_;
+    std::unique_ptr<std::thread> extractionThread_;
+    
+    // Result storage
+    std::string lastResultMessage_;
+    bool lastResultSuccess_;
 
     // Private methods
     void renderMenuBar();
@@ -87,6 +100,11 @@ private:
     void startVideoExtraction();
     void startDepthExtraction();
     
+    void cancelExtraction();
+    void checkExtractionComplete();
+    
+    void updateProgress(float progress, const std::string& message);
+    
     // ImGui helpers
     void setupStyle();
     void processEvents();
@@ -95,3 +113,4 @@ private:
 };
 
 } // namespace zed_gui
+

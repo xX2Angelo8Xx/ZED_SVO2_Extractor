@@ -1,7 +1,8 @@
 # ZED SVO2 Extraction Tools - Project Roadmap
 
 **Project Start Date:** November 7, 2025  
-**Current Version:** 0.1.0-alpha  
+**Current Version:** 0.1.0-beta  
+**Current Phase:** Phase 2B Complete - GUI Application  
 **Project Lead:** Angelo Amon (xX2Angelo8Xx)  
 **Repository:** https://github.com/xX2Angelo8Xx/ZED_SVO2_Extractor
 
@@ -9,10 +10,11 @@
 
 ## 🎯 Project Vision
 
-Build three professional C++ applications for processing ZED 2i camera SVO2 files:
-1. **Video Extractor** - Export MP4 videos
-2. **Frame Extractor** - Extract frames for YOLO model training
-3. **Depth Analyzer** - Neural depth analysis with heatmap visualization
+Build professional C++ applications for processing ZED 2i camera SVO2 files:
+1. **GUI Extractor** - Modern interface for video and frame extraction ✅
+2. **Video Extractor CLI** - Command-line video export ✅
+3. **Frame Extractor CLI** - Command-line frame extraction for YOLO training ✅
+4. **Depth Analyzer** - Neural depth analysis (planned)
 
 **Key Principles:**
 - ✅ Incremental development with stable milestones
@@ -25,128 +27,133 @@ Build three professional C++ applications for processing ZED 2i camera SVO2 file
 
 ## 📋 Development Phases
 
-### **Phase 0: Foundation & Setup** ✅ CURRENT PHASE
-**Status:** In Progress  
+### **Phase 0: Foundation & Setup** ✅ COMPLETE
+**Status:** Completed  
 **Version:** 0.1.0-alpha  
 **Goal:** Establish project structure, documentation, and development workflow
 
 #### Milestones:
 - [x] **M0.1:** Initial project structure
 - [x] **M0.2:** Metadata system implementation
-- [ ] **M0.3:** Complete documentation framework
-- [ ] **M0.4:** Development environment setup guide
-- [ ] **M0.5:** First successful build of empty applications
+- [x] **M0.3:** Complete documentation framework
+- [x] **M0.4:** Development environment setup guide
+- [x] **M0.5:** First successful build
 
-#### Deliverables:
-- Project roadmap (this document)
-- C++ learning guide
-- Dependency installation guide
-- Code style guidelines
-- Git workflow documentation
-- CMakeLists.txt with build structure
-
-**Target Completion:** Week 1
+**Completed:** November 7, 2025
 
 ---
 
-### **Phase 1: Core Infrastructure**
+### **Phase 1: Core Infrastructure** ✅ COMPLETE
 **Version:** 0.2.0-alpha  
-**Goal:** Build shared components used by all three applications
+**Goal:** Build shared components used by all applications
 
 #### Milestones:
-- [ ] **M1.1:** File system utilities (folder scanning, SVO2 detection)
-- [ ] **M1.2:** Basic SVO2 handler (open, read properties, close)
-- [ ] **M1.3:** Error handling and logging system
-- [ ] **M1.4:** Progress tracking system
-- [ ] **M1.5:** Unit tests for core utilities
+- [x] **M1.1:** File system utilities (folder scanning, SVO2 detection, flight parsing)
+- [x] **M1.2:** SVO handler (open, read properties, frame retrieval, close)
+- [x] **M1.3:** Error handling and logging system
+- [x] **M1.4:** Output manager with intelligent path generation
+- [x] **M1.5:** Global frame numbering system
 
-#### Learning Focus:
-- C++ file I/O and filesystem library
-- ZED SDK basics
-- Smart pointers and RAII
-- Error handling patterns
+#### Key Components:
+- `file_utils.cpp/hpp` - File operations and flight folder detection
+- `svo_handler.cpp/hpp` - ZED SVO file handling wrapper
+- `error_handler.cpp/hpp` - Centralized error codes and logging
+- `output_manager.cpp/hpp` - Output path management
+- `metadata.cpp/hpp` - Flight metadata and JSON export
 
-**Estimated Duration:** 1-2 weeks  
-**Target Completion:** Week 3
+**Completed:** November 7, 2025
 
 ---
 
-### **Phase 2: Frame Extractor (CLI)** 🎯 FIRST APPLICATION
-**Version:** 0.3.0-alpha  
-**Goal:** Create command-line frame extractor (simplest application)
+### **Phase 2M1: Metadata System** ✅ COMPLETE
+**Version:** 0.2.1-alpha  
+**Goal:** Complete metadata extraction and JSON export
 
 #### Milestones:
-- [ ] **M2.1:** Command-line argument parsing
-- [ ] **M2.2:** FPS detection and frame skip calculation
-- [ ] **M2.3:** Single frame extraction (left camera)
-- [ ] **M2.4:** Batch frame extraction with progress display
-- [ ] **M2.5:** PNG export with proper naming (L_frame_XXXXXX.png)
-- [ ] **M2.6:** Continuous numbering system
-- [ ] **M2.7:** JSON metadata generation
-- [ ] **M2.8:** Right camera support
+- [x] **M2M1.1:** Flight folder regex parser (flight_YYYYMMDD_HHMMSS)
+- [x] **M2M1.2:** JSON metadata generation
+- [x] **M2M1.3:** Camera info extraction from SVO
+- [x] **M2M1.4:** Frame counting and duration calculation
 
-#### Learning Focus:
-- Image processing with OpenCV
-- File naming and numbering logic
-- Console output formatting
-- JSON file writing
-
-**Estimated Duration:** 1-2 weeks  
-**Target Completion:** Week 5
+**Completed:** November 7, 2025
 
 ---
 
-### **Phase 3: Frame Extractor GUI**
-**Version:** 0.4.0-beta  
-**Goal:** Add GUI to Frame Extractor
+### **Phase 2M2.1: Frame Extractor CLI** ✅ COMPLETE
+**Version:** 0.2.2-alpha  
+**Goal:** Create command-line frame extractor
 
 #### Milestones:
-- [ ] **M3.1:** ImGui + GLFW setup
-- [ ] **M3.2:** Basic window with file browser
-- [ ] **M3.3:** Camera selection radio buttons
-- [ ] **M3.4:** Progress bar integration
-- [ ] **M3.5:** Cancel button functionality
-- [ ] **M3.6:** Settings display (FPS, frame skip, etc.)
-- [ ] **M3.7:** Error dialogs
+- [x] **M2.1:** Command-line argument parsing
+- [x] **M2.2:** FPS validation and frame interval calculation
+- [x] **M2.3:** Frame extraction with global numbering
+- [x] **M2.4:** Progress tracking and console output
+- [x] **M2.5:** PNG export with YOLO naming (L_frame_XXXXXX.png)
+- [x] **M2.6:** Left/Right camera support
+- [x] **M2.7:** Flight folder detection and output path management
 
-#### Learning Focus:
-- GUI programming concepts
-- Event-driven programming
-- Threading (UI vs processing thread)
-- ImGui framework
+#### Testing Results:
+- ✅ Successfully extracted 716 frames from test SVO
+- ✅ Global frame numbering working correctly
+- ✅ Flight folder detection validated
 
-**Estimated Duration:** 1-2 weeks  
-**Target Completion:** Week 7
+**Completed:** November 7, 2025
 
 ---
 
-### **Phase 4: Video Extractor (CLI)**
-**Version:** 0.5.0-alpha  
+### **Phase 2A: Video Extractor CLI** ✅ COMPLETE
+**Version:** 0.2.3-alpha  
 **Goal:** Create command-line video extractor
 
 #### Milestones:
-- [ ] **M4.1:** Frame extraction for video (single camera)
-- [ ] **M4.2:** FFmpeg integration (system call)
-- [ ] **M4.3:** H.264 encoding with quality settings
-- [ ] **M4.4:** Side-by-side frame combining
-- [ ] **M4.5:** Dual camera extraction (separate files)
-- [ ] **M4.6:** Video metadata generation
-- [ ] **M4.7:** Cleanup of temporary frame files
+- [x] **M2A.1:** Video extraction framework
+- [x] **M2A.2:** MJPEG codec integration (AVI container)
+- [x] **M2A.3:** Camera mode support (left, right, both_separate, side_by_side)
+- [x] **M2A.4:** Quality slider (0-100%)
+- [x] **M2A.5:** FPS configuration with validation
+- [x] **M2A.6:** Metadata export for video extractions
+- [x] **M2A.7:** OpenCV 4.10.0 upgrade (from ZED's bundled 3.1.0)
 
-#### Learning Focus:
-- Video encoding concepts
-- FFmpeg command-line usage
-- Image concatenation
-- Temporary file management
+#### Key Achievements:
+- MJPEG codec in AVI container (universally compatible)
+- OpenCV 4.10.0 integration with full FFmpeg support
+- Automatic FPS validation and fallback to source FPS
+- Flight folder detection and extraction numbering
 
-**Estimated Duration:** 1-2 weeks  
-**Target Completion:** Week 9
+**Completed:** November 7, 2025
 
 ---
 
-### **Phase 5: Video Extractor GUI**
-**Version:** 0.6.0-beta  
-**Goal:** Add GUI to Video Extractor
+### **Phase 2B: GUI Application** ✅ COMPLETE
+**Version:** 0.1.0-beta  
+**Goal:** Modern GUI with real-time progress tracking
+
+#### Milestones:
+- [x] **M2B.1:** Dear ImGui + GLFW + OpenGL3 setup
+- [x] **M2B.2:** Basic window with file browser (Windows native dialogs)
+- [x] **M2B.3:** Frame extraction GUI with settings
+- [x] **M2B.4:** Video extraction GUI with camera modes
+- [x] **M2B.5:** Real-time progress bars with threading
+- [x] **M2B.6:** Extraction engine library with progress callbacks
+- [x] **M2B.7:** Cancel button functionality
+- [x] **M2B.8:** Result messages and error handling
+
+#### Architecture:
+- **Extraction Engine**: Shared library with `std::function` progress callbacks
+- **Threading**: `std::thread` for async extraction, atomic flags for cancellation
+- **Progress**: Mutex-protected message passing with `std::atomic<float>` progress
+- **UI**: Dear ImGui with responsive progress bars and status text
+
+#### Technical Achievements:
+- Created `extraction_engine.cpp/hpp` as shared library
+- Refactored CLI tools to use extraction engine
+- Thread-safe cancellation with `std::atomic<bool>`
+- Real-time progress updates without blocking UI
+- BGRA to BGR conversion fix for VideoWriter compatibility
+
+**Completed:** November 7, 2025
+
+---
 
 #### Milestones:
 - [ ] **M5.1:** GUI layout (reuse Frame Extractor patterns)
@@ -190,57 +197,49 @@ Build three professional C++ applications for processing ZED 2i camera SVO2 file
 ---
 
 ### **Phase 7: Depth Analyzer - Object Detection**
-**Version:** 0.8.0-alpha  
-**Goal:** Add object detection and distance measurement
+**Completed:** November 7, 2025
 
-#### Milestones:
-- [ ] **M7.1:** Connected components algorithm
-- [ ] **M7.2:** Object filtering by size
-- [ ] **M7.3:** Mean distance calculation per object
-- [ ] **M7.4:** Bounding box drawing
-- [ ] **M7.5:** Distance label rendering
-- [ ] **M7.6:** Object tracking across frames (optional)
+---
 
-#### Learning Focus:
-- Image segmentation
-- Connected components analysis
-- Text rendering in OpenCV
-- Object tracking algorithms
+### **Phase 3: Depth Extraction & Analysis** 🎯 NEXT PHASE
+**Version:** 0.2.0-beta  
+**Goal:** Add depth map extraction and visualization
+
+#### Planned Milestones:
+- [ ] **M3.1:** Depth map extraction (NEURAL mode)
+- [ ] **M3.2:** Depth map export (PNG/EXR formats)
+- [ ] **M3.3:** Heatmap colorization (10-50m range)
+- [ ] **M3.4:** Depth statistics (min/max/mean/median)
+- [ ] **M3.5:** GUI integration for depth extraction
+
+#### Future Enhancements:
+- Object detection with distance measurement
+- Depth video overlay (camera + heatmap blend)
+- Connected components analysis for object tracking
 
 **Estimated Duration:** 2-3 weeks  
-**Target Completion:** Week 15
+**Status:** Not started
 
 ---
 
-### **Phase 8: Depth Analyzer - Video & Overlay**
-**Version:** 0.9.0-alpha  
-**Goal:** Video output with camera overlay
+### **Phase 4: Testing & Optimization**
+**Version:** 0.3.0-beta  
+**Goal:** Comprehensive testing and performance improvements
 
-#### Milestones:
-- [ ] **M8.1:** Camera image overlay
-- [ ] **M8.2:** Transparency blending
-- [ ] **M8.3:** Video encoding with overlays
-- [ ] **M8.4:** Frame-by-frame processing
-- [ ] **M8.5:** Performance optimization
-- [ ] **M8.6:** Complete statistics generation
-
-#### Learning Focus:
-- Image blending algorithms
-- Alpha compositing
-- Video processing optimization
-- Memory management
+#### Planned Milestones:
+- [ ] **M4.1:** Automated test suite
+- [ ] **M4.2:** Performance profiling and optimization
+- [ ] **M4.3:** Memory leak detection
+- [ ] **M4.4:** Error handling improvements
+- [ ] **M4.5:** User acceptance testing
 
 **Estimated Duration:** 1-2 weeks  
-**Target Completion:** Week 17
+**Status:** Not started
 
 ---
 
-### **Phase 9: Depth Analyzer GUI**
-**Version:** 0.10.0-beta  
-**Goal:** Complete GUI for Depth Analyzer
+### **Phase 5: Advanced Features**
 
-#### Milestones:
-- [ ] **M9.1:** Complex GUI layout
 - [ ] **M9.2:** Neural mode dropdown
 - [ ] **M9.3:** Transparency slider
 - [ ] **M9.4:** Min object size slider

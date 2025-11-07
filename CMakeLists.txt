@@ -39,19 +39,33 @@ if(WIN32)
     set(ZED_LIBRARY_DIR "${ZED_SDK_ROOT_DIR}/lib")
     set(ZED_LIBRARIES "${ZED_LIBRARY_DIR}/sl_zed64.lib")
     
-    # Bundled OpenCV (Version 3.1.0)
-    set(OpenCV_DIR "${ZED_SDK_ROOT_DIR}/dependencies/opencv_3.1.0")
-    set(OpenCV_INCLUDE_DIRS "${OpenCV_DIR}/include")
-    set(OpenCV_LIBRARY_DIR "${OpenCV_DIR}/x64")
+    # Option to use external OpenCV (with better codec support)
+    option(USE_EXTERNAL_OPENCV "Use external OpenCV instead of ZED bundled version" ON)
     
-    # OpenCV libraries - using opencv_world (all-in-one library)
-    set(OpenCV_LIBS
-        "${OpenCV_LIBRARY_DIR}/opencv_world310.lib"
-    )
+    if(USE_EXTERNAL_OPENCV AND EXISTS "C:/opencv/build")
+        # Use external OpenCV 4.x with full FFmpeg support
+        message(STATUS "Using external OpenCV from C:/opencv")
+        set(OpenCV_DIR "C:/opencv/build")
+        find_package(OpenCV REQUIRED)
+        set(OpenCV_INCLUDE_DIRS ${OpenCV_INCLUDE_DIRS})
+        set(OpenCV_LIBS ${OpenCV_LIBS})
+        set(OpenCV_DLL_DIR "C:/opencv/build/x64/vc16/bin")
+    else()
+        # Bundled OpenCV (Version 3.1.0) - Limited codec support
+        message(STATUS "Using ZED bundled OpenCV 3.1.0")
+        set(OpenCV_DIR "${ZED_SDK_ROOT_DIR}/dependencies/opencv_3.1.0")
+        set(OpenCV_INCLUDE_DIRS "${OpenCV_DIR}/include")
+        set(OpenCV_LIBRARY_DIR "${OpenCV_DIR}/x64")
+        
+        # OpenCV libraries - using opencv_world (all-in-one library)
+        set(OpenCV_LIBS
+            "${OpenCV_LIBRARY_DIR}/opencv_world310.lib"
+        )
+        set(OpenCV_DLL_DIR "${OpenCV_LIBRARY_DIR}")
+    endif()
     
     # Add DLL directories to PATH for runtime
     set(ZED_DLL_DIR "${ZED_SDK_ROOT_DIR}/bin")
-    set(OpenCV_DLL_DIR "${OpenCV_LIBRARY_DIR}")
 endif()
 
 # =============================================================================

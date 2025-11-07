@@ -38,14 +38,23 @@ GUIApplication::GUIApplication()
     , videoCamera_(0)
     , videoCodec_(0)
     , videoFps_(0.0f)
-    , videoQuality_(90)
+    , videoQuality_(100)  // Default to maximum quality
     , isProcessing_(false)
     , progressValue_(0.0f)
     , progressMessage_("")
+    , engine_(nullptr)
+    , extractionThread_(nullptr)
+    , lastResultMessage_("")
+    , lastResultSuccess_(false)
 {
+    engine_ = std::make_unique<zed_extractor::ExtractionEngine>();
 }
 
 GUIApplication::~GUIApplication() {
+    if (extractionThread_ && extractionThread_->joinable()) {
+        engine_->cancel();
+        extractionThread_->join();
+    }
     if (initialized_) {
         shutdown();
     }
@@ -103,6 +112,9 @@ void GUIApplication::run() {
     while (!glfwWindowShouldClose(window_)) {
         processEvents();
         beginFrame();
+        
+        // Check if extraction completed
+        checkExtractionComplete();
         
         // Render GUI
         renderMenuBar();
@@ -272,9 +284,10 @@ void GUIApplication::renderFrameExtractorTab() {
     ImGui::Separator();
     
     if (isProcessing_) {
+        std::lock_guard<std::mutex> lock(progressMutex_);
         ImGui::ProgressBar(progressValue_, ImVec2(-1, 0), progressMessage_.c_str());
-        if (ImGui::Button("Cancel")) {
-            // TODO: Implement cancellation
+        if (ImGui::Button("Cancel", ImVec2(-1, 30))) {
+            cancelExtraction();
         }
     } else {
         if (ImGui::Button("Start Frame Extraction", ImVec2(-1, 40))) {
@@ -293,15 +306,16 @@ void GUIApplication::renderVideoExtractorTab() {
     const char* codecs[] = { "H264", "H265", "MJPEG" };
     ImGui::Combo("Codec", &videoCodec_, codecs, IM_ARRAYSIZE(codecs));
     
-    ImGui::SliderFloat("FPS (0=source)", &videoFps_, 0.0f, 60.0f, "%.0f");
+    ImGui::SliderFloat("FPS (0=source)", &videoFps_, 0.0f, 100.0f, "%.0f");
     ImGui::SliderInt("Quality", &videoQuality_, 50, 100, "%d%%");
 
     ImGui::Separator();
     
     if (isProcessing_) {
+        std::lock_guard<std::mutex> lock(progressMutex_);
         ImGui::ProgressBar(progressValue_, ImVec2(-1, 0), progressMessage_.c_str());
-        if (ImGui::Button("Cancel")) {
-            // TODO: Implement cancellation
+        if (ImGui::Button("Cancel", ImVec2(-1, 30))) {
+            cancelExtraction();
         }
     } else {
         if (ImGui::Button("Start Video Extraction", ImVec2(-1, 40))) {
@@ -383,113 +397,138 @@ void GUIApplication::selectOutputPath() {
 void GUIApplication::startFrameExtraction() {
     if (svoFilePath_.empty()) {
         std::cerr << "No SVO file selected" << std::endl;
+        updateProgress(0.0f, "Error: No SVO file selected!");
         return;
     }
     
-    isProcessing_ = true;
-    progressValue_ = 0.0f;
-    progressMessage_ = "Starting frame extraction...";
+    if (isProcessing_) {
+        std::cerr << "Extraction already in progress" << std::endl;
+        return;
+    }
     
-    // Build command line for frame_extractor_cli
-    std::string exePath = "frame_extractor_cli.exe";
-    std::ostringstream cmd;
-    cmd << exePath << " \"" << svoFilePath_ << "\"";
-    cmd << " --base-output \"" << outputPath_ << "\"";
-    cmd << " --fps " << frameFps_;
+    // Join previous thread if it exists
+    if (extractionThread_ && extractionThread_->joinable()) {
+        extractionThread_->join();
+    }
+    
+    isProcessing_ = true;
+    updateProgress(0.0f, "Starting frame extraction...");
+    
+    // Build extraction configuration
+    zed_extractor::FrameExtractionConfig config;
+    config.svoFilePath = svoFilePath_;
+    config.baseOutputPath = outputPath_;
+    config.fps = frameFps_;
     
     const char* cameras[] = { "left", "right", "both" };
-    cmd << " --camera " << cameras[frameCamera_];
+    config.cameraMode = cameras[frameCamera_];
     
     const char* formats[] = { "png", "jpg" };
-    cmd << " --format " << formats[frameFormat_];
+    config.format = formats[frameFormat_];
     
-    std::cout << "Executing: " << cmd.str() << std::endl;
-    
-    // Execute the command
-#ifdef _WIN32
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-    
-    // Create a mutable copy of the command string
-    std::string cmdStr = cmd.str();
-    
-    if (CreateProcessA(NULL, &cmdStr[0], NULL, NULL, FALSE, 
-                      CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
-        std::cout << "Frame extraction started in separate window" << std::endl;
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-    } else {
-        std::cerr << "Failed to start frame extraction" << std::endl;
-    }
-#else
-    system(cmd.str().c_str());
-#endif
-    
-    isProcessing_ = false;
+    // Start extraction in background thread
+    extractionThread_ = std::make_unique<std::thread>([this, config]() {
+        auto result = engine_->extractFrames(config, 
+            [this](float progress, const std::string& message) {
+                this->updateProgress(progress, message);
+            });
+        
+        // Store result
+        lastResultSuccess_ = result.success;
+        if (result.success) {
+            lastResultMessage_ = "Frame extraction completed: " + 
+                               std::to_string(result.framesProcessed) + " frames extracted";
+        } else {
+            lastResultMessage_ = "Error: " + result.errorMessage;
+        }
+    });
 }
 
 void GUIApplication::startVideoExtraction() {
     if (svoFilePath_.empty()) {
         std::cerr << "No SVO file selected" << std::endl;
+        updateProgress(0.0f, "Error: No SVO file selected!");
         return;
     }
     
-    isProcessing_ = true;
-    progressValue_ = 0.0f;
-    progressMessage_ = "Starting video extraction...";
+    if (isProcessing_) {
+        std::cerr << "Extraction already in progress" << std::endl;
+        return;
+    }
     
-    // Build command line for video_extractor_cli
-    std::string exePath = "video_extractor_cli.exe";
-    std::ostringstream cmd;
-    cmd << exePath << " \"" << svoFilePath_ << "\"";
-    cmd << " --base-output \"" << outputPath_ << "\"";
+    // Join previous thread if it exists
+    if (extractionThread_ && extractionThread_->joinable()) {
+        extractionThread_->join();
+    }
+    
+    isProcessing_ = true;
+    updateProgress(0.0f, "Starting video extraction...");
+    
+    // Build extraction configuration
+    zed_extractor::VideoExtractionConfig config;
+    config.svoFilePath = svoFilePath_;
+    config.baseOutputPath = outputPath_;
     
     const char* cameras[] = { "left", "right", "both_separate", "side_by_side" };
-    cmd << " --camera " << cameras[videoCamera_];
+    config.cameraMode = cameras[videoCamera_];
     
     const char* codecs[] = { "h264", "h265", "mjpeg" };
-    cmd << " --codec " << codecs[videoCodec_];
+    config.codec = codecs[videoCodec_];
     
-    if (videoFps_ > 0.0f) {
-        cmd << " --fps " << videoFps_;
-    }
+    config.outputFps = videoFps_;
+    config.quality = videoQuality_;
     
-    cmd << " --quality " << videoQuality_;
-    
-    std::cout << "Executing: " << cmd.str() << std::endl;
-    
-    // Execute the command
-#ifdef _WIN32
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-    
-    // Create a mutable copy of the command string
-    std::string cmdStr = cmd.str();
-    
-    if (CreateProcessA(NULL, &cmdStr[0], NULL, NULL, FALSE, 
-                      CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
-        std::cout << "Video extraction started in separate window" << std::endl;
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-    } else {
-        std::cerr << "Failed to start video extraction" << std::endl;
-    }
-#else
-    system(cmd.str().c_str());
-#endif
-    
-    isProcessing_ = false;
+    // Start extraction in background thread
+    extractionThread_ = std::make_unique<std::thread>([this, config]() {
+        auto result = engine_->extractVideo(config, 
+            [this](float progress, const std::string& message) {
+                this->updateProgress(progress, message);
+            });
+        
+        // Store result
+        lastResultSuccess_ = result.success;
+        if (result.success) {
+            lastResultMessage_ = "Video extraction completed: " + 
+                               std::to_string(result.framesProcessed) + " frames processed";
+        } else {
+            lastResultMessage_ = "Error: " + result.errorMessage;
+        }
+    });
 }
 
 void GUIApplication::startDepthExtraction() {
     // TODO: Implement depth extraction
     std::cout << "Depth extraction not yet implemented" << std::endl;
+}
+
+void GUIApplication::cancelExtraction() {
+    if (engine_ && isProcessing_) {
+        engine_->cancel();
+        updateProgress(0.0f, "Cancelling...");
+    }
+}
+
+void GUIApplication::checkExtractionComplete() {
+    if (extractionThread_ && !engine_->isRunning()) {
+        if (extractionThread_->joinable()) {
+            extractionThread_->join();
+        }
+        extractionThread_.reset();
+        isProcessing_ = false;
+        
+        // Show final result
+        if (lastResultSuccess_) {
+            std::lock_guard<std::mutex> lock(progressMutex_);
+            progressMessage_ = lastResultMessage_;
+            progressValue_ = 1.0f;
+        }
+    }
+}
+
+void GUIApplication::updateProgress(float progress, const std::string& message) {
+    progressValue_ = progress;
+    std::lock_guard<std::mutex> lock(progressMutex_);
+    progressMessage_ = message;
 }
 
 } // namespace zed_gui

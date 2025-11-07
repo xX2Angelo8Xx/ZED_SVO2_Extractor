@@ -189,15 +189,15 @@ cv::Mat slMat2cvMat(sl::Mat& input) {
  */
 int getVideoCodec(const std::string& codec) {
     if (codec == "h264") {
-        // Use MP4V which is more widely supported
-        return cv::VideoWriter::fourcc('m', 'p', '4', 'v');
+        // H.264 codec - requires OpenCV with proper FFmpeg support
+        return cv::VideoWriter::fourcc('H', '2', '6', '4');
     } else if (codec == "h265") {
-        // H265 not widely supported, fall back to MP4V
-        return cv::VideoWriter::fourcc('m', 'p', '4', 'v');
+        // H.265 codec
+        return cv::VideoWriter::fourcc('H', 'E', 'V', 'C');
     } else if (codec == "mjpeg") {
         return cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
     }
-    return cv::VideoWriter::fourcc('m', 'p', '4', 'v'); // Default
+    return cv::VideoWriter::fourcc('H', '2', '6', '4'); // Default to H.264
 }
 
 /**
@@ -251,8 +251,20 @@ ErrorResult extractVideo(const Config& config) {
     
     LOG_INFO("Extraction path: " + extractionPath);
     
-    // Determine output FPS
-    float outputFps = (config.outputFps > 0) ? config.outputFps : props.fps;
+    // Determine output FPS with validation
+    float outputFps;
+    if (config.outputFps > 0) {
+        outputFps = config.outputFps;
+        // Warn if requested FPS exceeds source FPS
+        if (outputFps > props.fps) {
+            LOG_WARNING("Requested FPS (" + std::to_string(outputFps) + 
+                       ") exceeds source FPS (" + std::to_string(props.fps) + 
+                       "), falling back to source FPS");
+            outputFps = props.fps;
+        }
+    } else {
+        outputFps = props.fps;  // Use source FPS when 0
+    }
     LOG_INFO("Output FPS: " + std::to_string(outputFps));
     
     // Prepare metadata
