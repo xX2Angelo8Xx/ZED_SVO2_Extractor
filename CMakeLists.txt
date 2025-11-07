@@ -78,7 +78,7 @@ add_subdirectory(common)
 add_subdirectory(apps/frame_extractor)
 
 # Phase 4-5: Video Extractor  
-# add_subdirectory(apps/video_extractor)
+add_subdirectory(apps/video_extractor)
 
 # Phase 6-9: Depth Analyzer
 # add_subdirectory(apps/depth_analyzer)

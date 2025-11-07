@@ -21,6 +21,8 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <sl/Camera.hpp>
 
 // Our common utilities
@@ -28,6 +30,7 @@
 #include "../../common/file_utils.hpp"
 #include "../../common/svo_handler.hpp"
 #include "../../common/metadata.hpp"
+#include "../../common/output_manager.hpp"
 
 using namespace zed_tools;
 
@@ -36,7 +39,7 @@ using namespace zed_tools;
  */
 struct Config {
     std::string svoFilePath;
-    std::string outputDir = "./extracted_frames";
+    std::string baseOutputPath = "E:/Turbulence Solutions/AeroLock/ZED_Recordings_Output";
     float extractionFps = 1.0f;
     std::string cameraMode = "left";  // left, right, both
     std::string outputFormat = "png";
@@ -69,8 +72,8 @@ bool parseArguments(int argc, char* argv[], Config& config) {
     for (int i = 2; i < argc; i++) {
         std::string arg = argv[i];
         
-        if (arg == "--output-dir" && i + 1 < argc) {
-            config.outputDir = argv[++i];
+        if (arg == "--base-output" && i + 1 < argc) {
+            config.baseOutputPath = argv[++i];
         }
         else if (arg == "--fps" && i + 1 < argc) {
             config.extractionFps = std::stof(argv[++i]);
@@ -100,15 +103,19 @@ void printHelp() {
     std::cout << "Arguments:\n";
     std::cout << "  <svo_file>              Path to SVO2 file\n\n";
     std::cout << "Options:\n";
-    std::cout << "  --output-dir <path>     Output directory (default: ./extracted_frames)\n";
+    std::cout << "  --base-output <path>    Base output directory\n";
+    std::cout << "                          (default: E:/Turbulence Solutions/AeroLock/ZED_Recordings_Output)\n";
     std::cout << "  --fps <rate>            Extraction frame rate (default: 1.0)\n";
     std::cout << "  --camera <mode>         Camera: left, right, both (default: left)\n";
     std::cout << "  --format <ext>          Format: png, jpg (default: png)\n";
     std::cout << "  --help, -h              Show this help message\n\n";
+    std::cout << "Output Structure:\n";
+    std::cout << "  Frames saved to: <base>/Yolo_Training/Unfiltered_Images/flight_XXX/\n";
+    std::cout << "  Global frame numbering continues across all extractions\n\n";
     std::cout << "Examples:\n";
     std::cout << "  frame_extractor_cli flight.svo2\n";
     std::cout << "  frame_extractor_cli flight.svo2 --fps 2.0 --camera both\n";
-    std::cout << "  frame_extractor_cli flight.svo2 --output-dir ./frames --format jpg\n\n";
+    std::cout << "  frame_extractor_cli flight.svo2 --base-output D:/MyOutput\n\n";
 }
 
 /**
@@ -144,14 +151,16 @@ ErrorResult validateConfig(const Config& config) {
 ErrorResult extractFrames(const Config& config) {
     LOG_INFO("Starting frame extraction...");
     LOG_INFO("Input: " + config.svoFilePath);
-    LOG_INFO("Output: " + config.outputDir);
+    LOG_INFO("Base output: " + config.baseOutputPath);
     LOG_INFO("FPS: " + std::to_string(config.extractionFps));
     LOG_INFO("Camera: " + config.cameraMode);
     LOG_INFO("Format: " + config.outputFormat);
     
-    // Create output directory
-    if (!FileUtils::createDirectory(config.outputDir)) {
-        return ErrorResult::failure("Failed to create output directory: " + config.outputDir);
+    // Initialize OutputManager
+    OutputManager outputMgr(config.baseOutputPath);
+    auto validateResult = outputMgr.validateBaseOutputPath();
+    if (validateResult.isFailure()) {
+        return validateResult;
     }
     
     // Open SVO file
@@ -169,6 +178,28 @@ ErrorResult extractFrames(const Config& config) {
     LOG_INFO("  Total Frames: " + std::to_string(props.totalFrames));
     LOG_INFO("  Duration: " + std::to_string(props.durationSeconds) + "s");
     
+    // Parse flight info
+    std::filesystem::path svoPath(config.svoFilePath);
+    std::string parentFolder = svoPath.parent_path().filename().string();
+    std::string flightFolderName = parentFolder;
+    
+    if (!FileUtils::isFlightFolder(parentFolder)) {
+        LOG_WARNING("SVO file not in flight folder format. Using filename as identifier.");
+        flightFolderName = svoPath.stem().string();
+    }
+    
+    // Get output path for this flight's YOLO frames
+    std::string outputDir = outputMgr.getYoloFramesPath(flightFolderName);
+    if (outputDir.empty()) {
+        return ErrorResult::failure("Failed to create YOLO frames directory");
+    }
+    
+    LOG_INFO("Output directory: " + outputDir);
+    
+    // Get starting frame number (global counter)
+    int startingFrameNum = outputMgr.getNextGlobalFrameNumber();
+    LOG_INFO("Starting frame number: " + std::to_string(startingFrameNum));
+    
     // Calculate frame skip interval
     int frameSkip = static_cast<int>(std::round(props.fps / config.extractionFps));
     if (frameSkip < 1) frameSkip = 1;
@@ -178,18 +209,6 @@ ErrorResult extractFrames(const Config& config) {
     // Prepare metadata
     FrameMetadata frameMeta;
     frameMeta.extractionDateTime = metadata_utils::getCurrentDateTime();
-    
-    // Parse flight info if in flight folder
-    std::filesystem::path svoPath(config.svoFilePath);
-    std::string parentFolder = svoPath.parent_path().filename().string();
-    if (FileUtils::isFlightFolder(parentFolder)) {
-        FlightInfo flightInfo;
-        if (flightInfo.parseFromFolder(svoPath.parent_path().string())) {
-            frameMeta.flightInfo = flightInfo;
-        }
-    }
-    
-    // Set metadata
     frameMeta.width = props.width;
     frameMeta.height = props.height;
     frameMeta.sourceFps = props.fps;
@@ -198,19 +217,27 @@ ErrorResult extractFrames(const Config& config) {
     frameMeta.imageFormat = config.outputFormat;
     frameMeta.extractionRate = static_cast<int>(config.extractionFps);
     frameMeta.frameSkip = frameSkip;
-    frameMeta.outputDirectory = config.outputDir;
-    frameMeta.startingFrameNumber = 0;
+    frameMeta.outputDirectory = outputDir;
+    frameMeta.startingFrameNumber = startingFrameNum;
     frameMeta.totalExtractedFrames = 0;
+    
+    if (FileUtils::isFlightFolder(parentFolder)) {
+        FlightInfo flightInfo;
+        if (flightInfo.parseFromFolder(svoPath.parent_path().string())) {
+            frameMeta.flightInfo = flightInfo;
+        }
+    }
     
     // Extraction loop
     sl::Mat leftImage, rightImage;
-    int frameCount = 0;
+    int sourceFrameCount = 0;
     int extractedCount = 0;
+    int currentFrameNum = startingFrameNum;
     
     while (svo.grab()) {
         // Check if we should extract this frame
-        if (frameCount % frameSkip != 0) {
-            frameCount++;
+        if (sourceFrameCount % frameSkip != 0) {
+            sourceFrameCount++;
             continue;
         }
         
@@ -218,19 +245,21 @@ ErrorResult extractFrames(const Config& config) {
         if (config.cameraMode == "left" || config.cameraMode == "both") {
             sl::ERROR_CODE err = svo.retrieveImage(leftImage, sl::VIEW::LEFT);
             if (err == sl::ERROR_CODE::SUCCESS) {
-                // Generate filename
-                std::string filename = "frame_" + 
-                                     std::to_string(frameCount) + 
-                                     "_left." + config.outputFormat;
-                std::string filepath = config.outputDir + "/" + filename;
+                // Generate filename with global frame number (5 digits)
+                std::ostringstream oss;
+                oss << "frame_" << std::setw(5) << std::setfill('0') << currentFrameNum 
+                    << "_left." << config.outputFormat;
+                std::string filename = oss.str();
+                std::string filepath = outputDir + "/" + filename;
                 
                 // Save image
                 sl::ERROR_CODE saveErr = leftImage.write(filepath.c_str());
                 if (saveErr != sl::ERROR_CODE::SUCCESS) {
-                    LOG_WARNING("Failed to save frame " + std::to_string(frameCount) + " (left)");
+                    LOG_WARNING("Failed to save frame " + std::to_string(currentFrameNum) + " (left)");
                 } else {
                     LOG_DEBUG("Saved: " + filename);
                     extractedCount++;
+                    currentFrameNum++;
                 }
             }
         }
@@ -239,28 +268,30 @@ ErrorResult extractFrames(const Config& config) {
         if (config.cameraMode == "right" || config.cameraMode == "both") {
             sl::ERROR_CODE err = svo.retrieveImage(rightImage, sl::VIEW::RIGHT);
             if (err == sl::ERROR_CODE::SUCCESS) {
-                // Generate filename
-                std::string filename = "frame_" + 
-                                     std::to_string(frameCount) + 
-                                     "_right." + config.outputFormat;
-                std::string filepath = config.outputDir + "/" + filename;
+                // Generate filename with global frame number
+                std::ostringstream oss;
+                oss << "frame_" << std::setw(5) << std::setfill('0') << currentFrameNum 
+                    << "_right." << config.outputFormat;
+                std::string filename = oss.str();
+                std::string filepath = outputDir + "/" + filename;
                 
                 // Save image
                 sl::ERROR_CODE saveErr = rightImage.write(filepath.c_str());
                 if (saveErr != sl::ERROR_CODE::SUCCESS) {
-                    LOG_WARNING("Failed to save frame " + std::to_string(frameCount) + " (right)");
+                    LOG_WARNING("Failed to save frame " + std::to_string(currentFrameNum) + " (right)");
                 } else {
                     LOG_DEBUG("Saved: " + filename);
                     extractedCount++;
+                    currentFrameNum++;
                 }
             }
         }
         
-        frameCount++;
+        sourceFrameCount++;
         
         // Progress update every 10 frames
         if (extractedCount % 10 == 0 && extractedCount > 0) {
-            float progress = (frameCount * 100.0f) / props.totalFrames;
+            float progress = (sourceFrameCount * 100.0f) / props.totalFrames;
             LOG_INFO("Progress: " + std::to_string(static_cast<int>(progress)) + 
                     "% (" + std::to_string(extractedCount) + " frames extracted)");
         }
@@ -268,10 +299,13 @@ ErrorResult extractFrames(const Config& config) {
     
     // Update final metadata
     frameMeta.totalExtractedFrames = extractedCount;
-    frameMeta.endingFrameNumber = frameCount - 1;
+    frameMeta.endingFrameNumber = currentFrameNum - 1;
+    
+    // Update global frame counter
+    outputMgr.updateGlobalFrameCounter(currentFrameNum - 1);
     
     // Save metadata JSON
-    std::string metadataPath = config.outputDir + "/frames_metadata.json";
+    std::string metadataPath = outputDir + "/extraction_metadata.json";
     std::vector<FrameMetadata> metadataList = {frameMeta};
     if (!metadata_utils::saveFrameMetadataList(metadataList, metadataPath)) {
         LOG_WARNING("Failed to save metadata: " + metadataPath);
@@ -280,9 +314,10 @@ ErrorResult extractFrames(const Config& config) {
     }
     
     LOG_INFO("Extraction complete!");
-    LOG_INFO("Total frames processed: " + std::to_string(frameCount));
+    LOG_INFO("Source frames processed: " + std::to_string(sourceFrameCount));
     LOG_INFO("Frames extracted: " + std::to_string(extractedCount));
-    LOG_INFO("Output directory: " + config.outputDir);
+    LOG_INFO("Frame range: " + std::to_string(startingFrameNum) + " - " + std::to_string(currentFrameNum - 1));
+    LOG_INFO("Output directory: " + outputDir);
     
     return ErrorResult::success();
 }

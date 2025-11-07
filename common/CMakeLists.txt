@@ -6,6 +6,7 @@ set(COMMON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/file_utils.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/svo_handler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error_handler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/output_manager.cpp
 )
 
 # Header files
@@ -14,6 +15,7 @@ set(COMMON_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/file_utils.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/svo_handler.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/error_handler.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/output_manager.hpp
 )
 
 # Create static library
