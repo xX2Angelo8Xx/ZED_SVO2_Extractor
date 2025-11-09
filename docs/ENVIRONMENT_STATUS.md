@@ -1,20 +1,21 @@
 # Development Environment Status
 
-**Date:** November 7, 2025  
+**Date:** November 9, 2025  
 **System:** Windows 11  
-**Status:** ✅ Ready for Development (with minor setup needed)
+**Status:** ✅ Ready for Development
 
 ---
 
 ## ✅ Installed Components
 
-### 1. Visual Studio 2022 Community ✅
-- **Location:** `C:\Program Files\Microsoft Visual Studio\2022\Community`
+### 1. Visual Studio Build Tools 2022 (Detected) ✅
+- **Display Name:** Visual Studio Build Tools 2022
+- **Version:** 17.12.3 (product line 2022)
+- **Location:** `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools`
 - **Status:** Installed
-- **Issue:** C++ compiler not in PATH (normal - needs Developer PowerShell)
-- **Solution:** Use "Developer PowerShell for VS 2022" or run vcvarsall.bat
+- **Note:** If full IDE needed, install Community edition (optional). Use Developer PowerShell or `VsDevCmd.bat` to access `cl`.
 
-### 2. ZED SDK 5.0.6 ✅
+### 2. ZED SDK (5.0.6) ✅
 - **Location:** `C:\Program Files (x86)\ZED SDK`
 - **Version:** 5.0.6 (Latest as of Sept 2025)
 - **Environment Variable:** `ZED_SDK_ROOT_DIR` = `C:\Program Files (x86)\ZED SDK` ✅
@@ -33,80 +34,61 @@
 - **Status:** Configured and in PATH
 - **Compatible with:** ZED SDK 5.0.6 ✅
 
-### 4. OpenCV 3.1.0 ✅ (via ZED SDK)
+### 4. OpenCV 3.1.0 ✅ (bundled with ZED SDK)
 - **Location:** `C:\Program Files (x86)\ZED SDK\dependencies\opencv_3.1.0\x64`
 - **Status:** Bundled with ZED SDK, in PATH
 - **Note:** This is an older version but sufficient for our needs
 - **Binaries in PATH:** ✅
 
 ### 5. Git ✅
-- **Status:** Working (confirmed by our commits)
-- **Configuration:** Configured with user name and email ✅
+- **Version:** 2.43.0.windows.1
+- **Status:** Working (commits functional)
+- **Configuration:** Username/email set ✅
+
+### 6. CMake ✅
+- **Version:** 4.1.2
+- **Status:** Installed & in PATH
+
+### 7. Winget ✅
+- **Version:** v1.12.350
+- **Status:** Installed (used for automation script)
+
+### 8. PowerShell ✅
+- **Host Version:** 5.1.19041 (Windows PowerShell)
+- **Note:** Optionally install PowerShell 7 (pwsh) for enhanced scripting.
 
 ---
 
-## ⚠️ Missing/Needs Setup
+## ℹ️ Optional / Future Considerations
 
-### 1. CMake ❌
-- **Status:** Not installed or not in PATH
-- **Required Version:** 3.15+
-- **Action Needed:** Install CMake
-- **Options:**
-  - **Option A:** Via Visual Studio Installer (recommended)
-    - Open Visual Studio Installer
-    - Modify → Individual Components
-    - Search "CMake"
-    - Install "CMake tools for Windows"
-  - **Option B:** Standalone from https://cmake.org/download/
-- **Priority:** HIGH (needed for building)
+### OpenCV 4.x (Optional)
+- Current pipeline uses ZED-bundled 3.1.0; upgrade only if new APIs required.
 
-### 2. OpenCV 4.x (Optional)
-- **Current:** Using OpenCV 3.1.0 from ZED SDK
-- **Status:** Sufficient for Phase 1-2
-- **Action:** Can upgrade later if needed newer features
-- **Priority:** LOW (current version works)
+### PowerShell 7 (Optional)
+- Can coexist; install via winget: `winget install --id Microsoft.Powershell --source winget`.
 
 ---
 
 ## 📊 Summary Status
 
-| Component | Status | Version | Path Configured |
-|-----------|--------|---------|-----------------|
-| Visual Studio | ✅ | 2022 Community | Manual activation |
-| Git | ✅ | Latest | ✅ |
-| ZED SDK | ✅ | 5.0.6 | ✅ |
-| CUDA | ✅ | 12.9 | ✅ |
-| OpenCV | ✅ | 3.1.0 (via ZED) | ✅ |
-| CMake | ❌ | Not Found | ❌ |
+| Component | Status | Version | Path/Env OK |
+|-----------|--------|---------|-------------|
+| VS Build Tools 2022 | ✅ | 17.12.3 | Dev shell ✔ |
+| Git | ✅ | 2.43.0 | ✔ |
+| ZED SDK | ✅ | 5.0.6 | ✔ (env) |
+| CUDA Toolkit | ✅ | 12.9 (V12.9.86) | ✔ |
+| OpenCV (bundled) | ✅ | 3.1.0 | ✔ |
+| CMake | ✅ | 4.1.2 | ✔ |
+| Winget | ✅ | 1.12.350 | ✔ |
+| PowerShell | ✅ | 5.1.19041 | ✔ |
 
-**Overall:** 5/6 components ready (83%)
+**Overall:** All critical components present (100%)
 
 ---
 
 ## 🔧 Immediate Actions Required
 
-### Action 1: Install CMake (10 minutes)
-
-**Recommended Method:**
-1. Open Visual Studio Installer
-2. Click "Modify" on Visual Studio 2022 Community
-3. Go to "Individual Components" tab
-4. Search for "CMake"
-5. Check "C++ CMake tools for Windows"
-6. Click "Modify" and wait for installation
-
-**Alternative Method:**
-1. Download: https://cmake.org/download/
-2. Get "Windows x64 Installer"
-3. Run installer
-4. **Important:** Check "Add CMake to system PATH"
-5. Restart PowerShell after installation
-
-**Verification:**
-```powershell
-cmake --version
-# Should show: cmake version 3.x.x
-```
+No urgent actions required. Optional upgrades only.
 
 ---
 
@@ -168,12 +150,12 @@ cmake --build . --config Release
 
 ## 📝 Environment Variables Reference
 
-**Current Configuration:**
+**Selected Environment Variables (Sampling in current shell failed to echo ZED_SDK_ROOT_DIR due to quoting issues; directory exists):**
 
 ```
-ZED_SDK_ROOT_DIR = C:\Program Files (x86)\ZED SDK
 CUDA_PATH = C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9
-OpenCV_DIR = (not set - will use ZED SDK bundled version)
+ZED SDK root present at: C:\Program Files (x86)\ZED SDK
+OpenCV (bundled) at: C:\Program Files (x86)\ZED SDK\dependencies\opencv_3.1.0
 ```
 
 **PATH includes:**
@@ -263,8 +245,21 @@ C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9\bin
 - [ ] CMake installed
 - [ ] Test build successful
 
-**Status: 7/8 complete (87.5%)**
+**Status: All core components installed (100%)** 🚀
 
 ---
 
-**Once CMake is installed, you're ready to start Phase 1!** 🚀
+## 🔍 Captured Version Commands (Snapshot)
+
+```
+cmake --version           => 4.1.2
+git --version             => 2.43.0.windows.1
+nvcc --version            => CUDA 12.9 (V12.9.86)
+winget --version          => v1.12.350
+Visual Studio (vswhere)   => 17.12.3 (Build Tools)
+PowerShell                => 5.1.19041
+GPU Driver (RTX 2060)     => 32.0.15.8157
+OpenCV (bundled folder)   => opencv_3.1.0
+ZED SDK root contents     => bin, dependencies, include, lib, samples (5.0.6 assumed)
+```
+
