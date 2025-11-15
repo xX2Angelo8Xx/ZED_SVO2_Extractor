@@ -247,8 +247,8 @@ ErrorResult extractFrames(const Config& config) {
             if (err == sl::ERROR_CODE::SUCCESS) {
                 // Generate filename with global frame number (5 digits)
                 std::ostringstream oss;
-                oss << "frame_" << std::setw(5) << std::setfill('0') << currentFrameNum 
-                    << "_left." << config.outputFormat;
+                oss << "L_frame_" << std::setw(6) << std::setfill('0') << currentFrameNum 
+                    << "." << config.outputFormat;
                 std::string filename = oss.str();
                 std::string filepath = outputDir + "/" + filename;
                 
@@ -270,8 +270,8 @@ ErrorResult extractFrames(const Config& config) {
             if (err == sl::ERROR_CODE::SUCCESS) {
                 // Generate filename with global frame number
                 std::ostringstream oss;
-                oss << "frame_" << std::setw(5) << std::setfill('0') << currentFrameNum 
-                    << "_right." << config.outputFormat;
+                oss << "R_frame_" << std::setw(6) << std::setfill('0') << currentFrameNum 
+                    << "." << config.outputFormat;
                 std::string filename = oss.str();
                 std::string filepath = outputDir + "/" + filename;
                 

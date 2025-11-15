@@ -137,7 +137,10 @@ std::string OutputManager::getYoloFramesPath(const std::string& flightFolderName
 
 int OutputManager::scanForHighestFrameNumber(const std::string& folderPath) {
     int maxFrameNum = 0;
-    std::regex pattern(R"(frame_(\d{5})_)"); // Matches frame_00001_, frame_00002_, etc.
+    // New naming: L_frame_000001.png or R_frame_000001.png (6 digits)
+    std::regex newPattern(R"([LR]_frame_(\d{6}))");
+    // Legacy naming: frame_000001_left.png or frame_000001_right.png (6+ digits tolerated)
+    std::regex legacyPattern(R"(frame_(\d+)_((left)|(right)))");
     
     try {
         if (!fs::exists(folderPath)) {
@@ -148,11 +151,12 @@ int OutputManager::scanForHighestFrameNumber(const std::string& folderPath) {
             if (entry.is_regular_file()) {
                 std::string filename = entry.path().filename().string();
                 std::smatch matches;
-                if (std::regex_search(filename, matches, pattern)) {
+                if (std::regex_search(filename, matches, newPattern)) {
                     int frameNum = std::stoi(matches[1].str());
-                    if (frameNum > maxFrameNum) {
-                        maxFrameNum = frameNum;
-                    }
+                    if (frameNum > maxFrameNum) maxFrameNum = frameNum;
+                } else if (std::regex_search(filename, matches, legacyPattern)) {
+                    int frameNum = std::stoi(matches[1].str());
+                    if (frameNum > maxFrameNum) maxFrameNum = frameNum;
                 }
             }
         }

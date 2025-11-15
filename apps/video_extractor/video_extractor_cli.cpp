@@ -44,7 +44,7 @@ struct Config {
     std::string svoFilePath;
     std::string baseOutputPath = "E:/Turbulence Solutions/AeroLock/ZED_Recordings_Output";
     std::string cameraMode = "left";  // left, right, both_separate, side_by_side
-    std::string codec = "h264";       // h264, h265
+    std::string codec = "mjpeg";      // mjpeg (default), h264, h265
     float outputFps = -1.0f;          // -1 = use source FPS
     int quality = 90;                 // 0-100
     bool showHelp = false;
@@ -118,7 +118,7 @@ void printHelp() {
     std::cout << "                            both_separate - Two separate videos\n";
     std::cout << "                            side_by_side  - Stereo side-by-side\n";
     std::cout << "                          (default: left)\n";
-    std::cout << "  --codec <codec>         Video codec: h264, h265 (default: h264)\n";
+    std::cout << "  --codec <codec>         Video codec: mjpeg, h264, h265 (default: mjpeg)\n";
     std::cout << "  --fps <rate>            Output FPS (default: source FPS)\n";
     std::cout << "  --quality <0-100>       Video quality (default: 90)\n";
     std::cout << "  --help, -h              Show this help message\n\n";
@@ -126,7 +126,7 @@ void printHelp() {
     std::cout << "  Videos saved to: <base>/Extractions/flight_XXX/extraction_NNN/\n";
     std::cout << "  Each extraction gets a unique numbered folder\n\n";
     std::cout << "Examples:\n";
-    std::cout << "  video_extractor_cli flight.svo2\n";
+    std::cout << "  video_extractor_cli flight.svo2  # creates AVI (MJPEG) by default\n";
     std::cout << "  video_extractor_cli flight.svo2 --camera side_by_side --codec h265\n";
     std::cout << "  video_extractor_cli flight.svo2 --fps 30 --quality 95\n\n";
 }
@@ -147,7 +147,7 @@ ErrorResult validateConfig(const Config& config) {
     }
     
     // Check codec
-    if (config.codec != "h264" && config.codec != "h265") {
+    if (config.codec != "h264" && config.codec != "h265" && config.codec != "mjpeg") {
         return ErrorResult::failure("Invalid codec: " + config.codec);
     }
     
@@ -197,7 +197,13 @@ int getVideoCodec(const std::string& codec) {
     } else if (codec == "mjpeg") {
         return cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
     }
-    return cv::VideoWriter::fourcc('H', '2', '6', '4'); // Default to H.264
+    return cv::VideoWriter::fourcc('M', 'J', 'P', 'G'); // Default to MJPEG
+}
+
+// Map codec to container extension (preferred defaults)
+static std::string getContainerExtension(const std::string& codec) {
+    if (codec == "mjpeg") return ".avi"; // AVI universally decodable
+    return ".mp4"; // h264/h265
 }
 
 /**
@@ -277,7 +283,7 @@ ErrorResult extractVideo(const Config& config) {
     videoMeta.durationSeconds = props.durationSeconds;
     videoMeta.cameraMode = config.cameraMode;
     videoMeta.videoCodec = config.codec;
-    videoMeta.outputFormat = "mp4";
+    videoMeta.outputFormat = (config.codec == "mjpeg") ? "avi" : "mp4";
     
     if (FileUtils::isFlightFolder(parentFolder)) {
         FlightInfo flightInfo;
@@ -299,8 +305,10 @@ ErrorResult extractVideo(const Config& config) {
     cv::VideoWriter leftWriter, rightWriter, stereoWriter;
     std::string baseFilename = "video";
     
+    std::string extension = getContainerExtension(config.codec);
+
     if (config.cameraMode == "left" || config.cameraMode == "both_separate") {
-        std::string leftPath = extractionPath + "/" + baseFilename + "_left.mp4";
+        std::string leftPath = extractionPath + "/" + baseFilename + "_left" + extension;
         leftWriter.open(leftPath, fourcc, outputFps, cv::Size(props.width, props.height), true);
         if (!leftWriter.isOpened()) {
             return ErrorResult::failure("Failed to create left video writer: " + leftPath);
@@ -310,7 +318,7 @@ ErrorResult extractVideo(const Config& config) {
     }
     
     if (config.cameraMode == "right" || config.cameraMode == "both_separate") {
-        std::string rightPath = extractionPath + "/" + baseFilename + "_right.mp4";
+        std::string rightPath = extractionPath + "/" + baseFilename + "_right" + extension;
         rightWriter.open(rightPath, fourcc, outputFps, cv::Size(props.width, props.height), true);
         if (!rightWriter.isOpened()) {
             return ErrorResult::failure("Failed to create right video writer: " + rightPath);
@@ -320,7 +328,7 @@ ErrorResult extractVideo(const Config& config) {
     }
     
     if (config.cameraMode == "side_by_side") {
-        std::string stereoPath = extractionPath + "/" + baseFilename + "_stereo.mp4";
+        std::string stereoPath = extractionPath + "/" + baseFilename + "_stereo" + extension;
         stereoWriter.open(stereoPath, fourcc, outputFps, frameSize, true);
         if (!stereoWriter.isOpened()) {
             return ErrorResult::failure("Failed to create stereo video writer: " + stereoPath);
